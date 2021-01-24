@@ -9,9 +9,18 @@ public class AddProductCommand implements Command {
         price = p;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public Long getPrice() {
+        return price;
+    }
+
+
     @Override
     public String getSqlQuery() {
-        return "INSERT INTO PRODUCT " + "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
+        return "INSERT INTO TestProducts " + "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
     }
 
     @Override

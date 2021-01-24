@@ -3,7 +3,7 @@ package ru.akirakozov.sd.refactoring.command;
 public class GetProductsCommand implements Command {
     @Override
     public String getSqlQuery() {
-        return "SELECT * FROM PRODUCT";
+        return "SELECT * FROM TestProducts";
     }
 
     @Override

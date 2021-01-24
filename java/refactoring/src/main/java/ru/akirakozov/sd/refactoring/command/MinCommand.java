@@ -3,7 +3,7 @@ package ru.akirakozov.sd.refactoring.command;
 public class MinCommand implements Command {
     @Override
     public String getSqlQuery() {
-        return "SELECT * FROM PRODUCT ORDER BY PRICE LIMIT 1";
+        return "SELECT * FROM TestProducts ORDER BY PRICE LIMIT 1";
     }
 
     @Override
