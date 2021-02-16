@@ -11,6 +11,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import ru.akirakozov.sd.refactoring.Product;
 import ru.akirakozov.sd.refactoring.command.AddProductCommand;
 import ru.akirakozov.sd.refactoring.servlet.AddProductServlet;
 import ru.akirakozov.sd.refactoring.servlet.GetProductsServlet;
@@ -23,12 +24,19 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.List;
 
 public class ServiceBaseTest {
     protected static final int PORT = 8081;
     protected static final String LOCALHOST = "http://localhost:" + PORT;
     protected static final String PRODUCT_TABLE_NAME = "TestProducts";
     protected static Server server;
+
+
+    Product XBOX = new Product("XBOX360", (long) 100500);
+    Product PS4 = new Product("PS4", (long) 100499);
+    Product KFCONSOLE = new Product("KFCONSOLE", (long) 3450);
+
 
     @BeforeEach
     protected void runServer() throws Exception {
@@ -62,11 +70,27 @@ public class ServiceBaseTest {
         server.stop();
     }
 
+    protected void addProducts(List<?> list) {
+        for (Object object : list) {
+            if (object instanceof Product) {
+                addProduct((Product) object);
+            } else if (object instanceof AddProductCommand) {
+                addProduct((AddProductCommand) object);
+            } else {
+                return;
+            }
+        }
+    }
+
+    protected void addProduct(Product product) {
+        addProduct(new AddProductCommand(product));
+    }
+
     protected void addProduct(AddProductCommand command) {
         try {
             HttpClient client = HttpClient.newHttpClient();
-             {
-                String uri = LOCALHOST + "/add-product?name=" + command.getName() + "&price=" + command.getPrice();
+             { 
+                String uri = LOCALHOST + "/add-product?name=" + command.getProduct().getName() + "&price=" + command.getProduct().getPrice();
                 HttpRequest request = HttpRequest.newBuilder().uri(URI.create(uri)).build();
                 client.send(request, HttpResponse.BodyHandlers.ofString());
             }

@@ -1,26 +1,24 @@
 package ru.akirakozov.sd.refactoring.command;
 
+import ru.akirakozov.sd.refactoring.Product;
+
 public class AddProductCommand implements Command {
-    private final String name;
-    private final Long price;
+    private final Product product;
 
-    public AddProductCommand(String n, Long p) {
-        name = n;
-        price = p;
+    public AddProductCommand(Product p) {
+        product = p;
     }
 
-    public String getName() {
-        return name;
+    public Product getProduct() {
+        return product;
     }
-
-    public Long getPrice() {
-        return price;
-    }
-
 
     @Override
     public String getSqlQuery() {
-        return "INSERT INTO TestProducts " + "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
+        return "INSERT INTO TestProducts " +
+                "(NAME, PRICE) VALUES (\"" +
+                product.getName() + "\"," +
+                product.getPrice() + ")";
     }
 
     @Override

@@ -1,4 +1,5 @@
 import org.junit.jupiter.api.Test;
+import ru.akirakozov.sd.refactoring.Product;
 import ru.akirakozov.sd.refactoring.command.AddProductCommand;
 
 import java.util.Arrays;
@@ -13,20 +14,16 @@ public class AddGetTest extends ServiceBaseTest {
         doTest(Collections.emptyList());
     }
 
-    AddProductCommand XBOX = new AddProductCommand("XBOX360", (long) 100500);
-    AddProductCommand PS4 = new AddProductCommand("PS4", (long) 100499);
-
-
     @Test
     public void addGetSingleProduct() {
-        List<AddProductCommand> commands = Collections.singletonList(XBOX);
+        List<AddProductCommand> commands = Collections.singletonList(new AddProductCommand(XBOX));
         addProduct(XBOX);
         doTest(commands);
     }
 
     @Test
     public void addGetMultiplyProducts() {
-        List<AddProductCommand> commands = Arrays.asList(XBOX, PS4);
+        List<AddProductCommand> commands = Arrays.asList(new AddProductCommand(XBOX), new AddProductCommand(PS4));
         addProduct(XBOX);
         addProduct(PS4);
         doTest(commands);
@@ -36,7 +33,7 @@ public class AddGetTest extends ServiceBaseTest {
         StringBuilder expected = new StringBuilder();
         expected.append("<html><body>\n");
         for (AddProductCommand command : commands) {
-            expected.append(command.getName()).append("\t").append(command.getPrice()).append("</br>\n");
+            expected.append(command.getProduct().getName()).append("\t").append(command.getProduct().getPrice()).append("</br>\n");
         }
         expected.append("</body></html>\n");
         assertEquals(expected.toString(), getPathResponse("get-products"));
