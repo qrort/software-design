@@ -16,24 +16,24 @@ public class AddGetTest extends ServiceBaseTest {
 
     @Test
     public void addGetSingleProduct() {
-        List<AddProductCommand> commands = Collections.singletonList(new AddProductCommand(XBOX));
+        List<Product> products = Collections.singletonList(XBOX);
         addProduct(XBOX);
-        doTest(commands);
+        doTest(products);
     }
 
     @Test
-    public void addGetMultiplyProducts() {
-        List<AddProductCommand> commands = Arrays.asList(new AddProductCommand(XBOX), new AddProductCommand(PS4));
+    public void addGetMultipleProducts() {
+        List<Product> products = Arrays.asList(XBOX, PS4);
         addProduct(XBOX);
         addProduct(PS4);
-        doTest(commands);
+        doTest(products);
     }
 
-    private void doTest(List<AddProductCommand> commands) {
+    private void doTest(List<Product> products) {
         StringBuilder expected = new StringBuilder();
         expected.append("<html><body>\n");
-        for (AddProductCommand command : commands) {
-            expected.append(command.getProduct().getName()).append("\t").append(command.getProduct().getPrice()).append("</br>\n");
+        for (Product product : products) {
+            expected.append(product.getName()).append("\t").append(product.getPrice()).append("</br>\n");
         }
         expected.append("</body></html>\n");
         assertEquals(expected.toString(), getPathResponse("get-products"));

@@ -14,8 +14,8 @@ public class AddProductCommand implements Command {
     }
 
     @Override
-    public String getSqlQuery() {
-        return "INSERT INTO TestProducts " +
+    public String getSqlQuery(String tableName) {
+        return "INSERT INTO " + tableName +
                 "(NAME, PRICE) VALUES (\"" +
                 product.getName() + "\"," +
                 product.getPrice() + ")";

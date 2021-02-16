@@ -2,8 +2,8 @@ package ru.akirakozov.sd.refactoring.command;
 
 public class GetProductsCommand implements Command {
     @Override
-    public String getSqlQuery() {
-        return "SELECT * FROM TestProducts";
+    public String getSqlQuery(String tableName) {
+        return "SELECT * FROM " + tableName;
     }
 
     @Override

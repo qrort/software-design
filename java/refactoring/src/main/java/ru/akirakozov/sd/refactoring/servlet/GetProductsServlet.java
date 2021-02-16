@@ -1,6 +1,7 @@
 package ru.akirakozov.sd.refactoring.servlet;
 
 import ru.akirakozov.sd.refactoring.command.GetProductsCommand;
+import ru.akirakozov.sd.refactoring.database.ProductTableManager;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -10,9 +11,13 @@ import java.io.IOException;
 /**
  * @author akirakozov
  */
-public class GetProductsServlet extends HttpServlet {
+public class GetProductsServlet extends BaseServlet {
+    public GetProductsServlet(ProductTableManager manager) {
+        super(manager);
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        BaseServlet.processGetCommand(response, new GetProductsCommand());
+        processGetCommand(response, new GetProductsCommand());
     }
 }

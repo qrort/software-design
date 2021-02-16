@@ -1,59 +1,54 @@
 package ru.akirakozov.sd.refactoring.servlet;
 
 import ru.akirakozov.sd.refactoring.command.Command;
+import ru.akirakozov.sd.refactoring.database.ProductTableManager;
 
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 
 
-public class BaseServlet {
-    protected static void processGetCommand(HttpServletResponse response, Command command) {
-        try {
-            try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-                Statement stmt = c.createStatement();
-                ResultSet rs = stmt.executeQuery(command.getSqlQuery());
-                response.getWriter().println("<html><body>");
-                if (command.pageHeader() != null) {
-                    response.getWriter().println(command.pageHeader());
-                }
-                if (command.listAll()) {
-                    while (rs.next()) {
-                        String name = rs.getString("name");
-                        int price = rs.getInt("price");
-                        response.getWriter().println(name + "\t" + price + "</br>");
+public class BaseServlet extends HttpServlet {
+    private final ProductTableManager productTableManager;
+
+    BaseServlet(ProductTableManager manager) {
+        productTableManager = manager;
+    }
+
+    protected void processGetCommand(HttpServletResponse response, Command command) {
+        productTableManager.executeQueryStatement(
+                command.getSqlQuery(productTableManager.getTableName()),
+                rs -> {
+                    try {
+                        response.getWriter().println("<html><body>");
+                        if (command.pageHeader() != null) {
+                            response.getWriter().println(command.pageHeader());
+                        }
+                        if (command.listAll()) {
+                            while (rs.next()) {
+                                String name = rs.getString("name");
+                                int price = rs.getInt("price");
+                                response.getWriter().println(name + "\t" + price + "</br>");
+                            }
+                        } else {
+                            if (rs.next()) {
+                                response.getWriter().println(rs.getInt(1));
+                            }
+                        }
+                        response.getWriter().println("</body></html>");
+                        rs.close();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                } else {
-                    if (rs.next()) {
-                        response.getWriter().println(rs.getInt(1));
-                    }
                 }
-                response.getWriter().println("</body></html>");
-
-                rs.close();
-                stmt.close();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        );
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
-    protected static void processPostCommand(HttpServletResponse response, Command command) throws IOException {
-        try {
-            try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-                String sql = command.getSqlQuery();
-                Statement stmt = c.createStatement();
-                stmt.executeUpdate(sql);
-                stmt.close();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    protected void processPostCommand(HttpServletResponse response, Command command) throws IOException {
+        productTableManager.executeUpdateStatement(command.getSqlQuery(productTableManager.getTableName()));
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().println("OK");

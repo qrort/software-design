@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import ru.akirakozov.sd.refactoring.Product;
 import ru.akirakozov.sd.refactoring.command.AddProductCommand;
+import ru.akirakozov.sd.refactoring.database.ProductTableManager;
 import ru.akirakozov.sd.refactoring.servlet.AddProductServlet;
 import ru.akirakozov.sd.refactoring.servlet.GetProductsServlet;
 import ru.akirakozov.sd.refactoring.servlet.QueryServlet;
@@ -31,7 +32,7 @@ public class ServiceBaseTest {
     protected static final String LOCALHOST = "http://localhost:" + PORT;
     protected static final String PRODUCT_TABLE_NAME = "TestProducts";
     protected static Server server;
-
+    protected static ProductTableManager productTableManager;
 
     Product XBOX = new Product("XBOX360", (long) 100500);
     Product PS4 = new Product("PS4", (long) 100499);
@@ -40,34 +41,23 @@ public class ServiceBaseTest {
 
     @BeforeEach
     protected void runServer() throws Exception {
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            String sql = "DROP TABLE IF EXISTS " + PRODUCT_TABLE_NAME + ";";
-            Statement stmt = c.createStatement();
-            stmt.executeUpdate(sql);
-            stmt.close();
-            sql = "CREATE TABLE " + PRODUCT_TABLE_NAME +
-                    " (ID INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    " NAME           TEXT    NOT NULL, " +
-                    " PRICE          INT     NOT NULL)";
-            stmt = c.createStatement();
-            stmt.executeUpdate(sql);
-            stmt.close();
-        }
-
         server = new Server(PORT);
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
         server.start();
-        context.addServlet(new ServletHolder(new AddProductServlet()), "/add-product");
-        context.addServlet(new ServletHolder(new GetProductsServlet()), "/get-products");
-        context.addServlet(new ServletHolder(new QueryServlet()), "/query");
+
+        productTableManager = new ProductTableManager(PRODUCT_TABLE_NAME);
+        context.addServlet(new ServletHolder(new AddProductServlet(productTableManager)), "/add-product");
+        context.addServlet(new ServletHolder(new GetProductsServlet(productTableManager)), "/get-products");
+        context.addServlet(new ServletHolder(new QueryServlet(productTableManager)), "/query");
     }
 
     @AfterEach
     protected void tearDown() throws Exception {
         server.stop();
+        productTableManager.dropProductTable();
     }
 
     protected void addProducts(List<?> list) {
@@ -75,7 +65,7 @@ public class ServiceBaseTest {
             if (object instanceof Product) {
                 addProduct((Product) object);
             } else if (object instanceof AddProductCommand) {
-                addProduct((AddProductCommand) object);
+                addProduct(((AddProductCommand) object).getProduct());
             } else {
                 return;
             }
@@ -83,14 +73,10 @@ public class ServiceBaseTest {
     }
 
     protected void addProduct(Product product) {
-        addProduct(new AddProductCommand(product));
-    }
-
-    protected void addProduct(AddProductCommand command) {
         try {
             HttpClient client = HttpClient.newHttpClient();
-             { 
-                String uri = LOCALHOST + "/add-product?name=" + command.getProduct().getName() + "&price=" + command.getProduct().getPrice();
+             {
+                String uri = LOCALHOST + "/add-product?name=" + product.getName() + "&price=" + product.getPrice();
                 HttpRequest request = HttpRequest.newBuilder().uri(URI.create(uri)).build();
                 client.send(request, HttpResponse.BodyHandlers.ofString());
             }

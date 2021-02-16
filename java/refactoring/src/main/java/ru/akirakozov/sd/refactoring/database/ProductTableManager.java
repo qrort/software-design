@@ -4,8 +4,6 @@ package ru.akirakozov.sd.refactoring.database;
 import ru.akirakozov.sd.refactoring.Product;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 public class ProductTableManager {
@@ -15,6 +13,7 @@ public class ProductTableManager {
     public ProductTableManager(String tableName) throws SQLException {
         this.databaseConnection = DriverManager.getConnection("jdbc:sqlite:test.db");
         this.tableName = tableName;
+        createProductTableIfNotExists();
     }
 
     public void createProductTableIfNotExists() {
@@ -29,30 +28,10 @@ public class ProductTableManager {
         executeUpdateStatement("DROP TABLE " + tableName);
     }
 
-    public void insertProduct(Product product) {
+    public void addProduct(Product product) {
         String sqlQuery = "INSERT INTO " + tableName + " (NAME, PRICE) " +
                 "VALUES ('" + product.getName() + "'," + product.getPrice() + ")";
         executeUpdateStatement(sqlQuery);
-    }
-
-    public List<Product> selectAllProducts() {
-        return selectProducts("");
-    }
-
-    public List<Product> selectProducts(String queryTail) {
-        List<Product> products = new ArrayList<>();
-        executeQueryStatement("SELECT * FROM " + tableName + " " + queryTail, resultSet -> {
-            try {
-                while (resultSet.next()) {
-                    String name = resultSet.getString("name");
-                    long price = resultSet.getLong("price");
-                    products.add(new Product(name, price));
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-        return products;
     }
 
     public String getTableName() {
@@ -62,9 +41,9 @@ public class ProductTableManager {
     public void executeQueryStatement(String sqlQuery, Consumer<ResultSet> consumer) {
         try {
             Statement queryStatement = databaseConnection.createStatement();
-            ResultSet resultSet = queryStatement.executeQuery(sqlQuery);
-            consumer.accept(resultSet);
-            resultSet.close();
+            ResultSet rs = queryStatement.executeQuery(sqlQuery);
+            consumer.accept(rs);
+            rs.close();
             queryStatement.close();
         } catch (Exception e) {
             throw new RuntimeException(e);
